@@ -58,11 +58,12 @@ jobs:
           chmod +x opa
           sudo mv opa /usr/local/bin/opa
           opa version
-
+          
       - name: OPA Security Policy
         run: |
           opa eval \
+            --format pretty \
             --fail-defined \
-            -d security/policies \
-            -i terraform/tfplan.json \
-            'data.terraform.security.deny'
+            --data security/policies \
+            --input terraform/tfplan.json \
+            'data.terraform.security.deny[_]'          
