@@ -1,0 +1,54 @@
+name: Terraform Security
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+
+      - name: Terraform Format
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform validate
+      
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan -out=tfplan
+
+      - name: Export Terraform Plan JSON
+        working-directory: terraform
+        run: terraform show -json tfplan > tfplan.json
+
+      - name: Install OPA
+        run: |
+          brew install opa    
+      
+      - name: OPA Security Policy
+        run: |
+          opa eval \
+            --fail-defined \
+            -d security/policies \
+            -i terraform/tfplan.json \
+            'data.terraform.security.deny'      
+
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          quiet: true
