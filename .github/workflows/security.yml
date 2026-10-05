@@ -101,4 +101,14 @@ jobs:
             echo "::error title=Terraform security violation::$violation"
           done <<< "$violations"
 
-          exit 1                
+          exit 1 
+          
+      - name: Checkov security scan
+        uses: bridgecrewio/checkov-action@v12.1347.0
+        with:
+          directory: terraform
+          framework: terraform
+          output_format: cli,sarif
+          output_file_path: console,checkov-results.sarif
+          download_external_modules: true
+          additional_args: --hard-fail-on HIGH,CRITICAL                         
