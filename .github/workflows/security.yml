@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   security:
@@ -111,4 +112,10 @@ jobs:
           output_format: cli,sarif
           output_file_path: console,checkov-results.sarif
           download_external_modules: true
-          additional_args: --hard-fail-on HIGH,CRITICAL                         
+          additional_args: --hard-fail-on HIGH,CRITICAL
+          
+      - name: Upload Checkov SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: checkov-results.sarif                                   
