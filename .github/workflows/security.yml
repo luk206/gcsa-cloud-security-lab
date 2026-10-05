@@ -15,6 +15,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Start LocalStack
+        run: |
+          docker run -d \
+            --name localstack \
+            -p 4566:4566 \
+            -e SERVICES=s3 \
+            localstack/localstack
+
+      - name: Wait for LocalStack
+        run: |
+          until curl -s http://localhost:4566/_localstack/health | grep -q '"s3": *"available"'; do
+            echo "Waiting for LocalStack..."
+            sleep 2
+          done
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
