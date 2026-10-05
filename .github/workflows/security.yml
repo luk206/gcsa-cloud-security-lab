@@ -66,4 +66,39 @@ jobs:
             --fail-defined \
             --data security/policies \
             --input terraform/tfplan.json \
-            'data.terraform.security.deny[_]'          
+            'data.terraform.security.deny[_]'    
+          
+      - name: OPA Security Policy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          result_file="$(mktemp)"
+
+          opa eval \
+          --format=json \
+          --data security/policies \
+          --input terraform/tfplan.json \
+          'data.terraform.security.deny[_]' > "$result_file"
+
+          echo "## Terraform security policy" >> "$GITHUB_STEP_SUMMARY"
+
+          violations=$(jq -r '
+          [.result[]?.expressions[]?.value]
+          | map(select(. != null))
+          | .[]
+          ' "$result_file")
+
+          if [ -z "$violations" ]; then
+            echo "✅ No security violations found." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "❌ Security violations found:" | tee -a "$GITHUB_STEP_SUMMARY"
+
+          while IFS= read -r violation; do
+            echo "- $violation" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Terraform security violation::$violation"
+          done <<< "$violations"
+
+          exit 1                
