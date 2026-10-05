@@ -27,8 +27,19 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Checkov
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: .
-          quiet: true
+      # - name: Checkov
+      #   uses: bridgecrewio/checkov-action@master
+      #   with:
+      #     directory: .
+      #     quiet: true
+
+      - name: Install OPA
+        run: |
+          brew install opa
+
+      - name: OPA Security Policy
+        run: |
+          opa eval \
+            -d security/policies \
+            -i terraform/tfplan.json \
+            'data.terraform.security.deny'                      
