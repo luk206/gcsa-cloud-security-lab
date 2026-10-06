@@ -1,3 +1,7 @@
+# JetBrains IDEs
+.idea/
+*.iml
+
 # Terraform working directory
 **/.terraform/*
 
