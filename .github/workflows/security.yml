@@ -99,18 +99,16 @@ jobs:
       - name: Checkov security scan
         id: checkov
         uses: bridgecrewio/checkov-action@v12.1347.0
-        continue-on-error: true
         with:
           directory: terraform
           framework: terraform
           output_format: sarif
-          output_file_path: console,checkov-results.sarif
           download_external_modules: true
-          additional_args: --hard-fail-on HIGH,CRITICAL
+          hard_fail_on: CRITICAL
 
       - name: Upload Checkov SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: checkov-results.sarif
+          sarif_file: results.sarif
           category: checkov
